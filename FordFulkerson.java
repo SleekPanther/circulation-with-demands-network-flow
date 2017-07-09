@@ -1,34 +1,56 @@
 import java.util.*;
 
 class FlowEdge {
-	final int v, w;
-	final double capacity;
-	double flow;
+	private final int fromVertex;
+	private final int toVertex;
+	private double capacity;
+	private double flow;
 	
-	FlowEdge(int v, int w, double capacity){
-		this.v = v;
-		this.w = w;
+	public FlowEdge(int fromVertex, int toVertex, double capacity){
+		this.fromVertex = fromVertex;
+		this.toVertex = toVertex;
 		this.capacity = capacity;
 	}
 	
-	int from(){ return v;}
-	int to(){ return w;}
-	int other(int v){ 
-		return (v==this.v)?w:this.v;
+	public int from(){
+		return fromVertex;
 	}
-	double capacity(){return capacity;}
-	double flow(){return flow;}
-	double residualCapacityTo(int v){
-		if(v==this.w)return capacity-flow;
+	public int to(){
+		return toVertex;
+	}
+	public int other(int vertex){
+		if(vertex==this.fromVertex){
+			return toVertex;
+		}else{
+			return fromVertex;
+		}
+	}
+	public double capacity(){
+		return capacity;
+	}
+	public double flow(){
+		return flow;
+	}
+
+	public double residualCapacityTo(int vertex){
+		if(vertex==toVertex){
+			return capacity-flow;
+		}
 		else return flow;
 	}
-	void addResidualFlowTo(int v, double delta){
-		if(v==this.w)flow+=delta;
-		else         flow-=delta;
+
+	public void addResidualFlowTo(int vertex, double changeInFlow){
+		if(vertex==this.toVertex){
+			flow+=changeInFlow;
+		}else{
+			flow-=changeInFlow;
+		}
 	}
 	
 	@Override
-	public String toString(){return "["+v+", "+w+" ("+capacity+")]";}
+	public String toString(){
+		return "["+fromVertex+"-->"+toVertex+" ("+capacity+")]";
+	}
 }
 
 
