@@ -18,7 +18,7 @@ class FlowEdge {
 	public int to(){
 		return toVertex;
 	}
-	public int other(int vertex){
+	public int otherVertex(int vertex){
 		if(vertex==this.fromVertex){
 			return toVertex;
 		}else{
@@ -99,59 +99,64 @@ class FlowNetwork {
 
 
 public class FordFulkerson {
+	private double maxFlow;
+
 	private boolean[] marked;
 	private FlowEdge[] edgeTo;
-	private double value;
 
-	public FordFulkerson(FlowNetwork G, int s, int t){
-		value = 0;
-		while(hasAugmentingPath(G, s, t)){ 
-			double bottle = Double.POSITIVE_INFINITY;
+	public FordFulkerson(FlowNetwork graph, int source, int sink){
+		maxFlow = 0;
+		while(hasAugmentingPath(graph, source, sink)){ 
+			double bottneckFlow = Double.POSITIVE_INFINITY;
 			System.out.print("Considering Augmenting Path: "+ Arrays.toString(edgeTo));
-			 
-			for(int v = t;v != s;v=edgeTo[v].other(v)){ 
-				bottle = Math.min(bottle, edgeTo[v].residualCapacityTo(v));
-			}
-			for(int v = t;v!=s;v = edgeTo[v].other(v))
-				edgeTo[v].addResidualFlowTo(v, bottle);
 			
-			System.out.println("\t\tBottleneck="+bottle);
-			value += bottle;
+			//Loop over path & find bottleneck
+//Here is where to print the actual path (hopefully)
+			for(int v = sink; v != source; v=edgeTo[v].otherVertex(v)){ 
+				bottneckFlow = Math.min(bottneckFlow, edgeTo[v].residualCapacityTo(v));
+			}
+			//Update residual Capacities
+			for(int v = sink; v!=source; v = edgeTo[v].otherVertex(v)){
+				edgeTo[v].addResidualFlowTo(v, bottneckFlow);
+			}
+			
+			System.out.println("\t\tBottleneck="+bottneckFlow);
+			maxFlow += bottneckFlow;
 		}
 	}
 	
-	//BFS?
-	public final boolean hasAugmentingPath(FlowNetwork G, int s, int t){
-		edgeTo = new FlowEdge[G.vertexCount()];
-		marked = new boolean[G.vertexCount()];
+	//Breadth first search
+	public boolean hasAugmentingPath(FlowNetwork graph, int source, int sink){
+		edgeTo = new FlowEdge[graph.vertexCount()];
+		marked = new boolean[graph.vertexCount()];
 		
-		Queue<Integer> q = new LinkedList<>();
-		q.add(s);
-		marked[s] = true;
-		while(!q.isEmpty()){
-			
-			int v = q.poll(); 
-			for(FlowEdge e:G.adjacentTo(v)){
-				int w = e.other(v);
-				if(e.residualCapacityTo(w) > 0 && !marked[w]){
-					edgeTo[w] = e;
+		Queue<Integer> vertexQueue = new LinkedList<Integer>();
+		vertexQueue.add(source);	//add & visit the source vertex
+		marked[source] = true;
+		while(!vertexQueue.isEmpty()){
+			int vertex = vertexQueue.poll();		//remove vertex from head of queue
+			for(FlowEdge edge : graph.adjacentTo(vertex)){
+				int otherVertex = edge.otherVertex(vertex);
+				if(edge.residualCapacityTo(otherVertex)>0 && !marked[otherVertex]){		//if vertex has residual capacity & is unvisited
+					edgeTo[otherVertex] = edge;		//update the edges leading out of otherVertex
 					
-					marked[w] = true;
-					q.add(w);
+					marked[otherVertex] = true;		//visit the new vertex
+					vertexQueue.add(otherVertex);	//and add to queue
 				}
 			}
 		}
-		return marked[t];
+		return marked[sink];	//did BFS visit the target
 	}
 	
-	public double value(){
-		return value;
+	public double maxFlow(){
+		return maxFlow;
 	}
 	
-	public boolean inCut(int v){
-		return marked[v];
-	} 
-	
+	public boolean isVertexinCut(int vertex){
+		return marked[vertex];
+	}
+
+
 	public static void main(String[] args){
 		// FlowNetwork network = new FlowNetwork(4);
 		// network.addEdge(new FlowEdge(0, 1, 20));
@@ -159,7 +164,7 @@ public class FordFulkerson {
 		// network.addEdge(new FlowEdge(1, 2, 30));
 		// network.addEdge(new FlowEdge(1, 3, 10));
 		// network.addEdge(new FlowEdge(2, 3, 20));
-		// FordFulkerson ff = new FordFulkerson(network, 0, 3);
+		// FordFulkerson fordFulkerson = new FordFulkerson(network, 0, 3);
 
 		// FlowNetwork network = new FlowNetwork(6);
 		// network.addEdge(new FlowEdge(0, 1, 16));
@@ -171,7 +176,7 @@ public class FordFulkerson {
 		// network.addEdge(new FlowEdge(4,3,7));
 		// network.addEdge(new FlowEdge(3,5,20));
 		// network.addEdge(new FlowEdge(4,5,4));
-		// FordFulkerson ff = new FordFulkerson(network, 0, 5);
+		// FordFulkerson fordFulkerson = new FordFulkerson(network, 0, 5);
 
 		//Circulation graph
 		FlowNetwork network = new FlowNetwork(6);
@@ -184,13 +189,13 @@ public class FordFulkerson {
 		network.addEdge(new FlowEdge(2, 5, 2));
 		network.addEdge(new FlowEdge(3, 2, 2));
 		network.addEdge(new FlowEdge(3, 5, 4));
-		FordFulkerson ff = new FordFulkerson(network, 4, 5);
+		FordFulkerson fordFulkerson = new FordFulkerson(network, 4, 5);
 
-		System.out.println("Maxflow value = "+ff.value());
+		System.out.println("Maxflow value = "+fordFulkerson.maxFlow());
 		
 		System.out.println("Mincut vertices : ");
-		for(int i=0;i<network.vertexCount();++i){
-			if(ff.marked[i]){
+		for(int i=0; i<network.vertexCount(); ++i){
+			if(fordFulkerson.marked[i]){
 				System.out.print(i+" ");
 			}
 		}
