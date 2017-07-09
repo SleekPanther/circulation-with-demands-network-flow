@@ -55,39 +55,48 @@ class FlowEdge {
 
 
 class FlowNetwork {
-	private final int V;
-	private int E;
+	private int vertexCount;
+	private int edgeCount;
 	private ArrayList<ArrayList<FlowEdge>> graph;
 	
-	FlowNetwork(int V){
-		this.V = V;
-		graph = new ArrayList<>(V);
-		for(int i=0;i<V;++i)graph.add(new ArrayList<>());
-	}
-	void addEdge(FlowEdge e){
-		int v = e.from();
-		int w = e.to();
-		graph.get(v).add(e);
-		graph.get(w).add(e);
-		E++;
-	}
-	
-	
-	Iterable<FlowEdge> adj(int v){
-		return graph.get(v);
-	}
-	
-	Iterable<FlowEdge> edges(){
-		ArrayList<FlowEdge> al = new ArrayList<>(V);
-		for(int i=0;i<V;++i){
-			for(FlowEdge fe:graph.get(i))al.add(fe);
+	public FlowNetwork(int vertexCount){
+		this.vertexCount = vertexCount;
+		graph = new ArrayList<ArrayList<FlowEdge>>(vertexCount);
+		for(int i=0; i<vertexCount; ++i){
+			graph.add(new ArrayList<FlowEdge>());
 		}
-		return al;        
+	}
+	public void addEdge(FlowEdge edge){
+		int v = edge.from();
+		int w = edge.to();
+		graph.get(v).add(edge);
+		graph.get(w).add(edge);
+		edgeCount++;
 	}
 	
-	int V(){return V;};
-	int E(){return E;};
+
+	public int vertexCount(){
+		return vertexCount;
+	}
+	public int edgeCount(){
+		return edgeCount;
+	}
+	
+	public Iterable<FlowEdge> adjacentTo(int vertex){
+		return graph.get(vertex);
+	}
+	
+	public Iterable<FlowEdge> edges(){
+		ArrayList<FlowEdge> edges = new ArrayList<FlowEdge>(vertexCount);
+		for(int i=0; i<vertexCount; ++i){
+			for(FlowEdge edge:graph.get(i)){
+				edges.add(edge);
+			}
+		}
+		return edges;
+	}
 }
+
 
 public class FordFulkerson {
 	private boolean[] marked;
@@ -113,8 +122,8 @@ public class FordFulkerson {
 	
 	//BFS?
 	public final boolean hasAugmentingPath(FlowNetwork G, int s, int t){
-		edgeTo = new FlowEdge[G.V()];
-		marked = new boolean[G.V()];
+		edgeTo = new FlowEdge[G.vertexCount()];
+		marked = new boolean[G.vertexCount()];
 		
 		Queue<Integer> q = new LinkedList<>();
 		q.add(s);
@@ -122,7 +131,7 @@ public class FordFulkerson {
 		while(!q.isEmpty()){
 			
 			int v = q.poll(); 
-			for(FlowEdge e:G.adj(v)){
+			for(FlowEdge e:G.adjacentTo(v)){
 				int w = e.other(v);
 				if(e.residualCapacityTo(w) > 0 && !marked[w]){
 					edgeTo[w] = e;
@@ -180,7 +189,7 @@ public class FordFulkerson {
 		System.out.println("Maxflow value = "+ff.value());
 		
 		System.out.println("Mincut vertices : ");
-		for(int i=0;i<network.V();++i){
+		for(int i=0;i<network.vertexCount();++i){
 			if(ff.marked[i]){
 				System.out.print(i+" ");
 			}
