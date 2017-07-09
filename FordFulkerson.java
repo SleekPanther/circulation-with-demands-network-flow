@@ -104,23 +104,35 @@ public class FordFulkerson {
 	private boolean[] marked;
 	private FlowEdge[] edgeTo;
 
-	public FordFulkerson(FlowNetwork graph, int source, int sink){
+	public FordFulkerson(FlowNetwork graph, ArrayList<String> vertexName, int source, int sink){
+		vertexName.add("S");
+		vertexName.add("T");
+		//do more preprocessing to connect sink/source to supplies/demands
+		
 		maxFlow = 0;
+
 		while(hasAugmentingPath(graph, source, sink)){ 
 			double bottneckFlow = Double.POSITIVE_INFINITY;
-			System.out.print("Considering Augmenting Path: "+ Arrays.toString(edgeTo));
+			// System.out.print("Considering Augmenting Path: "+ Arrays.toString(edgeTo));
 			
-			//Loop over path & find bottleneck
-//Here is where to print the actual path (hopefully)
-			for(int v = sink; v != source; v=edgeTo[v].otherVertex(v)){ 
+			//Loop backwards over path & find the bottleneck flow
+			ArrayList<Integer> augmentingPathBackwards = new ArrayList<Integer>();		//save vertices on the path while looping backwards
+			for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
+				augmentingPathBackwards.add(v);
 				bottneckFlow = Math.min(bottneckFlow, edgeTo[v].residualCapacityTo(v));
 			}
 			//Update residual Capacities
-			for(int v = sink; v!=source; v = edgeTo[v].otherVertex(v)){
+			for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
 				edgeTo[v].addResidualFlowTo(v, bottneckFlow);
 			}
+
+			System.out.print("Augmenting Path: ");
+			System.out.print(vertexName.get(source));
+			for(int i=augmentingPathBackwards.size()-1; i>=0; i--){
+				System.out.print("-->"+vertexName.get(augmentingPathBackwards.get(i)));
+			}
 			
-			System.out.println("\t\tBottleneck="+bottneckFlow);
+			System.out.println("\t\t\tBottleneck Flow="+bottneckFlow);
 			maxFlow += bottneckFlow;
 		}
 	}
@@ -158,45 +170,39 @@ public class FordFulkerson {
 
 
 	public static void main(String[] args){
-		// FlowNetwork network = new FlowNetwork(4);
-		// network.addEdge(new FlowEdge(0, 1, 20));
-		// network.addEdge(new FlowEdge(0, 2, 10));
-		// network.addEdge(new FlowEdge(1, 2, 30));
-		// network.addEdge(new FlowEdge(1, 3, 10));
-		// network.addEdge(new FlowEdge(2, 3, 20));
-		// FordFulkerson fordFulkerson = new FordFulkerson(network, 0, 3);
-
-		// FlowNetwork network = new FlowNetwork(6);
-		// network.addEdge(new FlowEdge(0, 1, 16));
-		// network.addEdge(new FlowEdge(0,2,13));
-		// network.addEdge(new FlowEdge(2,1,4));
-		// network.addEdge(new FlowEdge(1,3,12));
-		// network.addEdge(new FlowEdge(3,2,9));
-		// network.addEdge(new FlowEdge(2,4,14));
-		// network.addEdge(new FlowEdge(4,3,7));
-		// network.addEdge(new FlowEdge(3,5,20));
-		// network.addEdge(new FlowEdge(4,5,4));
-		// FordFulkerson fordFulkerson = new FordFulkerson(network, 0, 5);
-
-		//Circulation graph
 		FlowNetwork network = new FlowNetwork(6);
-		network.addEdge(new FlowEdge(4, 0, 3));
-		network.addEdge(new FlowEdge(4, 1, 3));
-		network.addEdge(new FlowEdge(0, 2, 3));
-		network.addEdge(new FlowEdge(0, 3, 1));
-		network.addEdge(new FlowEdge(1, 0, 2));
-		network.addEdge(new FlowEdge(1, 3, 3));
-		network.addEdge(new FlowEdge(2, 5, 2));
-		network.addEdge(new FlowEdge(3, 2, 2));
+		network.addEdge(new FlowEdge(4, 0, 16));
+		network.addEdge(new FlowEdge(4, 1, 13));
+		network.addEdge(new FlowEdge(0, 2, 12));
+		network.addEdge(new FlowEdge(1, 0, 4));
+		network.addEdge(new FlowEdge(1, 3, 14));
+		network.addEdge(new FlowEdge(2, 5, 20));
+		network.addEdge(new FlowEdge(2, 1, 9));
+		network.addEdge(new FlowEdge(3, 2, 7));
 		network.addEdge(new FlowEdge(3, 5, 4));
-		FordFulkerson fordFulkerson = new FordFulkerson(network, 4, 5);
+		ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("v1", "v2", "v3", "v4"));
+		FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, 4, 5);
+
+		// //Circulation graph
+		// FlowNetwork network = new FlowNetwork(6);
+		// network.addEdge(new FlowEdge(4, 0, 3));
+		// network.addEdge(new FlowEdge(4, 1, 3));
+		// network.addEdge(new FlowEdge(0, 2, 3));
+		// network.addEdge(new FlowEdge(0, 3, 1));
+		// network.addEdge(new FlowEdge(1, 0, 2));
+		// network.addEdge(new FlowEdge(1, 3, 3));
+		// network.addEdge(new FlowEdge(2, 5, 2));
+		// network.addEdge(new FlowEdge(3, 2, 2));
+		// network.addEdge(new FlowEdge(3, 5, 4));
+		// ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
+		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, 4, 5);
 
 		System.out.println("Maxflow value = "+fordFulkerson.maxFlow());
 		
-		System.out.println("Mincut vertices : ");
-		for(int i=0; i<network.vertexCount(); ++i){
-			if(fordFulkerson.marked[i]){
-				System.out.print(i+" ");
+		System.out.println("Mincut vertices: ");
+		for(int v=0; v<network.vertexCount(); ++v){
+			if(fordFulkerson.marked[v]){
+				System.out.print(vertexName.get(v)+" ");
 			}
 		}
 	}
