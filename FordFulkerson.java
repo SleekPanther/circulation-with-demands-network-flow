@@ -73,7 +73,10 @@ class FlowNetwork {
 		graph.get(w).add(edge);
 		edgeCount++;
 	}
-	
+	public void addVertexPlaceholder(){
+		graph.add(new ArrayList<FlowEdge>());
+		vertexCount++;
+	}
 
 	public int vertexCount(){
 		return vertexCount;
@@ -104,10 +107,37 @@ public class FordFulkerson {
 	private boolean[] marked;
 	private FlowEdge[] edgeTo;
 
-	public FordFulkerson(FlowNetwork graph, ArrayList<String> vertexName, int source, int sink){
+	public FordFulkerson(FlowNetwork graph, ArrayList<String> vertexName, int[] vertexDemand){
+		ArrayList<Integer> demandVertices = new ArrayList<Integer>();
+		ArrayList<Integer> supplyVertices = new ArrayList<Integer>();
+		for(int vertex=0; vertex<graph.vertexCount(); vertex++){
+			if(vertexDemand[vertex]>0){
+				demandVertices.add(vertex);
+			}
+			else if(vertexDemand[vertex]<0){
+				supplyVertices.add(vertex);
+			}
+			//If demand=0 nothing needs to change
+		}
+
+
+		int source = graph.vertexCount();
+		int sink = source + 1;
+
 		vertexName.add("S");
 		vertexName.add("T");
-		//do more preprocessing to connect sink/source to supplies/demands
+
+		graph.addVertexPlaceholder();
+		graph.addVertexPlaceholder();
+
+		//Connect demand vertices to sink & source vertex to all supply vertices
+		for(int vertex : demandVertices){
+			graph.addEdge(new FlowEdge(vertex, sink, vertexDemand[vertex]));
+		}
+		for(int vertex : supplyVertices){
+			graph.addEdge(new FlowEdge(source, vertex, -vertexDemand[vertex]));		//negative of the demand value to get a positive capacity 
+		}
+
 		
 		maxFlow = 0;
 
@@ -184,7 +214,7 @@ public class FordFulkerson {
 		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, 4, 5);
 
 		//Complex circulation graph
-		FlowNetwork network = new FlowNetwork(8);
+		FlowNetwork network = new FlowNetwork(6);	//+2 ==> 8 with S & T
 		/*
 		s=6
 		t=7
@@ -195,21 +225,22 @@ public class FordFulkerson {
 		e=4
 		f=5
 		*/
-		network.addEdge(new FlowEdge(6, 2, 7));	//s c
-		network.addEdge(new FlowEdge(6, 0, 8));	//s a
-		network.addEdge(new FlowEdge(6, 1, 6));	//s b
+			// network.addEdge(new FlowEdge(6, 2, 7));	//s c
+			// network.addEdge(new FlowEdge(6, 0, 8));	//s a
+			// network.addEdge(new FlowEdge(6, 1, 6));	//s b
 		network.addEdge(new FlowEdge(0, 3, 6));	//a d
 		network.addEdge(new FlowEdge(0, 4, 7));	//a e
 		network.addEdge(new FlowEdge(1, 3, 7));	//b d
 		network.addEdge(new FlowEdge(1, 5, 9));	//b f
 		network.addEdge(new FlowEdge(2, 0, 10));	//c a
 		network.addEdge(new FlowEdge(2, 3, 3));	//c d
-		network.addEdge(new FlowEdge(3, 7, 10));	//d t
+			// network.addEdge(new FlowEdge(3, 7, 10));	//d t
 		network.addEdge(new FlowEdge(4, 1, 4));	//e b
 		network.addEdge(new FlowEdge(4, 5, 4));	//e f
-		network.addEdge(new FlowEdge(5, 7, 11));	//f t
+			// network.addEdge(new FlowEdge(5, 7, 11));	//f t
 		ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("a", "b", "c", "d", "e", "f"));
-		FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, 6, 7);
+		int[] vertexDemand = {-8, -6, -7, 10, 0, 11};
+		FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, vertexDemand);
 
 		// //Simple Circulation graph
 		// FlowNetwork network = new FlowNetwork(6);
