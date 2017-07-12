@@ -73,7 +73,7 @@ class FlowNetwork {
 		graph.get(w).add(edge);
 		edgeCount++;
 	}
-	public void addVertexPlaceholder(){
+	public void addVertexPlaceholder(){			//When a new vertex needs to be appended to the graph
 		graph.add(new ArrayList<FlowEdge>());
 		vertexCount++;
 	}
@@ -102,7 +102,11 @@ class FlowNetwork {
 
 
 public class FordFulkerson {
-	private double maxFlow;
+	private double maxFlow = 0;
+	private int sumOfDemands = 0;
+	private int sumOfSupplies = 0;
+	private boolean doDemandsMatchSupplies=true;
+	private boolean hasCirculation = true;
 
 	private boolean[] marked;
 	private FlowEdge[] edgeTo;
@@ -113,13 +117,16 @@ public class FordFulkerson {
 		for(int vertex=0; vertex<graph.vertexCount(); vertex++){
 			if(vertexDemand[vertex]>0){
 				demandVertices.add(vertex);
+				sumOfDemands += vertexDemand[vertex];
+				System.out.println("Demands="+vertexDemand[vertex]);
 			}
 			else if(vertexDemand[vertex]<0){
 				supplyVertices.add(vertex);
+				sumOfSupplies += -vertexDemand[vertex];		//negative
+				System.out.println("Supply="+ -vertexDemand[vertex]);
 			}
-			//If demand=0 nothing needs to change
+			//If demand=0 nothing needs to change, vertex is not connected to source or sink
 		}
-
 
 		int source = graph.vertexCount();
 		int sink = source + 1;
@@ -138,32 +145,38 @@ public class FordFulkerson {
 			graph.addEdge(new FlowEdge(source, vertex, -vertexDemand[vertex]));		//negative of the demand value to get a positive capacity 
 		}
 
-		
-		maxFlow = 0;
+		if(sumOfSupplies != sumOfDemands){
+			doDemandsMatchSupplies=false;
+		}
 
-		while(hasAugmentingPath(graph, source, sink)){ 
-			double bottneckFlow = Double.POSITIVE_INFINITY;
-			// System.out.print("Considering Augmenting Path: "+ Arrays.toString(edgeTo));
-			
-			//Loop backwards over path & find the bottleneck flow
-			ArrayList<Integer> augmentingPathBackwards = new ArrayList<Integer>();		//save vertices on the path while looping backwards
-			for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
-				augmentingPathBackwards.add(v);
-				bottneckFlow = Math.min(bottneckFlow, edgeTo[v].residualCapacityTo(v));
-			}
-			//Update residual Capacities
-			for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
-				edgeTo[v].addResidualFlowTo(v, bottneckFlow);
-			}
 
-			System.out.print("Augmenting Path: ");
-			System.out.print(vertexName.get(source));
-			for(int i=augmentingPathBackwards.size()-1; i>=0; i--){
-				System.out.print("-->"+vertexName.get(augmentingPathBackwards.get(i)));
+		if(doDemandsMatchSupplies){		//Only do ford fulkerson if the graph supplies/demands are valid
+			maxFlow = 0;
+
+			while(hasAugmentingPath(graph, source, sink)){ 
+				double bottneckFlow = Double.POSITIVE_INFINITY;
+				
+				//Loop backwards over path & find the bottleneck flow
+				ArrayList<Integer> augmentingPathBackwards = new ArrayList<Integer>();		//save vertices on the path while looping backwards
+				for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
+					augmentingPathBackwards.add(v);
+					bottneckFlow = Math.min(bottneckFlow, edgeTo[v].residualCapacityTo(v));
+				}
+				//Update residual Capacities
+				for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
+					edgeTo[v].addResidualFlowTo(v, bottneckFlow);
+				}
+
+				System.out.print("Bottleneck Flow="+bottneckFlow);
+				System.out.print("\tAugmenting Path: ");
+				System.out.print(vertexName.get(source));
+				for(int i=augmentingPathBackwards.size()-1; i>=0; i--){
+					System.out.print("-->"+vertexName.get(augmentingPathBackwards.get(i)));
+				}
+				System.out.println();
+				
+				maxFlow += bottneckFlow;
 			}
-			
-			System.out.println("\t\t\tBottleneck Flow="+bottneckFlow);
-			maxFlow += bottneckFlow;
 		}
 	}
 	
@@ -192,6 +205,21 @@ public class FordFulkerson {
 	
 	public double maxFlow(){
 		return maxFlow;
+	}
+	public int sumOfDemands(){
+		return sumOfDemands;
+	}
+	public int sumOfSupplies(){
+		return sumOfSupplies;
+	}
+	public boolean doDemandsMatchSupplies(){
+		return doDemandsMatchSupplies;
+	}
+	public boolean hasCirculation(){
+		if(!doDemandsMatchSupplies){
+			return false;
+		}
+		return true;
 	}
 	
 	public boolean isVertexinCut(int vertex){
@@ -256,13 +284,23 @@ public class FordFulkerson {
 		// ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
 		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, 4, 5);
 
-		System.out.println("Maxflow value = "+fordFulkerson.maxFlow());
-		
-		System.out.println("Mincut vertices: ");
-		for(int v=0; v<network.vertexCount(); ++v){
-			if(fordFulkerson.marked[v]){
-				System.out.print(vertexName.get(v)+" ");
+		if(fordFulkerson.hasCirculation()){
+			System.out.println("Graph has Circulation \nMaxflow value = "+fordFulkerson.maxFlow());
+			System.out.println("\nMincut vertices: ");
+			for(int v=0; v<network.vertexCount(); ++v){
+				if(fordFulkerson.marked[v]){
+					System.out.print(vertexName.get(v)+" ");
+				}
+			}
+		}else{
+			System.out.println("Graph does NOT have circulation");
+			if(!fordFulkerson.doDemandsMatchSupplies()){
+				System.out.println("Demands & supplies do not match");
+				System.out.println("Sum of demands = "+fordFulkerson.sumOfDemands());
+				System.out.println("Sum of supplies = "+fordFulkerson.sumOfSupplies());
 			}
 		}
+		
+		
 	}
 }
