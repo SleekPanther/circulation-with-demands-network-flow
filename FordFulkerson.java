@@ -178,6 +178,7 @@ public class FordFulkerson {
 				maxFlow += bottneckFlow;
 			}
 		}
+		displayOutputMessages(graph, vertexName);
 	}
 	
 	//Breadth first search
@@ -221,6 +222,25 @@ public class FordFulkerson {
 		}
 		return true;
 	}
+
+	private void displayOutputMessages(FlowNetwork graph, ArrayList<String> vertexName){
+		if(hasCirculation()){
+			System.out.println("Graph has Circulation \nMaxflow value = "+maxFlow());
+			System.out.println("\nMincut vertices: ");
+			for(int v=0; v<graph.vertexCount(); ++v){
+				if(marked[v]){
+					System.out.print(vertexName.get(v)+" ");
+				}
+			}
+		}else{
+			System.out.println("Graph does NOT have circulation");
+			if(!doDemandsMatchSupplies()){
+				System.out.println("Demands & supplies do not match");
+				System.out.println("Sum of demands = "+sumOfDemands());
+				System.out.println("Sum of supplies = "+sumOfSupplies());
+			}
+		}
+	}
 	
 	public boolean isVertexinCut(int vertex){
 		return marked[vertex];
@@ -242,6 +262,17 @@ public class FordFulkerson {
 		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, 4, 5);
 
 
+		//Simple Circulation graph
+		// FlowNetwork network = new FlowNetwork(4);
+		// network.addEdge(new FlowEdge(0, 2, 3));
+		// network.addEdge(new FlowEdge(0, 3, 1));
+		// network.addEdge(new FlowEdge(1, 0, 2));
+		// network.addEdge(new FlowEdge(1, 3, 3));
+		// network.addEdge(new FlowEdge(3, 2, 2));
+		// ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
+		// int[] vertexDemand = {-3, -3, 2, 4};
+		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, vertexDemand);
+
 		//Complex circulation graph
 		// FlowNetwork network = new FlowNetwork(6);
 		// network.addEdge(new FlowEdge(0, 3, 6));	//a d
@@ -256,34 +287,15 @@ public class FordFulkerson {
 		// int[] vertexDemand = {-8, -6, -7, 10, 0, 11};
 		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, vertexDemand);
 
-		//Simple Circulation graph
+		//Graph 5 with no lower bounds
 		FlowNetwork network = new FlowNetwork(4);
-		network.addEdge(new FlowEdge(0, 2, 3));
-		network.addEdge(new FlowEdge(0, 3, 1));
-		network.addEdge(new FlowEdge(1, 0, 2));
-		network.addEdge(new FlowEdge(1, 3, 3));
-		network.addEdge(new FlowEdge(3, 2, 2));
+		network.addEdge(new FlowEdge(0, 2, 4));
+		network.addEdge(new FlowEdge(0, 1, 5));
+		network.addEdge(new FlowEdge(1, 2, 5));
+		network.addEdge(new FlowEdge(1, 3, 4));
+		network.addEdge(new FlowEdge(2, 3, 3));
 		ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
-		int[] vertexDemand = {-3, -3, 2, 4};
+		int[] vertexDemand = {-3, -4, 2, 5};
 		FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, vertexDemand);
-
-		if(fordFulkerson.hasCirculation()){
-			System.out.println("Graph has Circulation \nMaxflow value = "+fordFulkerson.maxFlow());
-			System.out.println("\nMincut vertices: ");
-			for(int v=0; v<network.vertexCount(); ++v){
-				if(fordFulkerson.marked[v]){
-					System.out.print(vertexName.get(v)+" ");
-				}
-			}
-		}else{
-			System.out.println("Graph does NOT have circulation");
-			if(!fordFulkerson.doDemandsMatchSupplies()){
-				System.out.println("Demands & supplies do not match");
-				System.out.println("Sum of demands = "+fordFulkerson.sumOfDemands());
-				System.out.println("Sum of supplies = "+fordFulkerson.sumOfSupplies());
-			}
-		}
-		
-		
 	}
 }
