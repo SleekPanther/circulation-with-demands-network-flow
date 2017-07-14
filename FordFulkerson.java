@@ -39,9 +39,11 @@ class FlowEdge {
 	public void setCapacity(double capacity){
 		this.capacity=capacity;
 	}
+
 	public double flow(){
 		return flow;
 	}
+
 	public double getLowerBound(){
 		return lowerBound;
 	}
@@ -72,7 +74,7 @@ class FlowEdge {
 	
 	@Override
 	public String toString(){
-		return "["+fromVertex+"-->"+toVertex+" ("+capacity+")]";
+		return "["+fromVertex+"-->"+toVertex+" (capacity="+capacity+")]";
 	}
 }
 
@@ -156,42 +158,45 @@ public class FordFulkerson {
 		}
 
 		if(doDemandsMatchSupplies){		//Only continue if supplies/demands are valid
-			System.out.println("before");
+			System.out.println("Before adjusting bounds");
 			for(FlowEdge edge : graph.edges()){
-				System.out.println(edge + "lower="+edge.getLowerBound());
+				System.out.println(edge + "  lower="+edge.getLowerBound());
 			}
 
+			//Process edges and adjust for lower bounds
 			for(FlowEdge edge : graph.edges()){
-				if(edge.getLowerBound() != 0){
-					System.out.println(edge);
+				if(edge.getLowerBound() != 0){		//Edges with NO lower bounds have lower bound of 0
+				System.out.println(edge);
+					//Subtract lower bounds from capacity & update bounds
 					double oldLowerBound = edge.getLowerBound();
-					edge.setCapacity(edge.getUpperBound() - oldLowerBound);
+					edge.setCapacity(edge.getUpperBound() - oldLowerBound);		//lower bound edges initally have no capacity
 					edge.setUpperBound(edge.getCapacity());
 					edge.setLowerBound(0);
 
-					int from = edge.from();
-					int to = edge.to();
-					int fromDemand = vertexDemand[from];
-					int toDemand = vertexDemand[to];
-				//another bool array to see if vertexDemand has been changed already
-					if(vertexDemand[from]>0){
-						vertexDemand[from] -= oldLowerBound;
+				int from = edge.from();
+				int to = edge.to();
+				int fromDemand = vertexDemand[from];
+				int toDemand = vertexDemand[to];
+					//Adjust supplies/demands for both ends of the edge. Subtract oldLowerBound if vertex is a demand vertex (>0) & add if it's a supply vertex (<0)
+					if(vertexDemand[edge.from()]>0){
+						vertexDemand[edge.from()] -= oldLowerBound;
 					}else{
-						vertexDemand[from] += oldLowerBound;
+						vertexDemand[edge.from()] += oldLowerBound;
 					}
 
-					if(vertexDemand[to]>0){
-						vertexDemand[to] -= oldLowerBound;
+					if(vertexDemand[edge.to()]>0){
+						vertexDemand[edge.to()] -= oldLowerBound;
 					}else{
-						vertexDemand[to] += oldLowerBound;
+						vertexDemand[edge.to()] += oldLowerBound;
 					}
-					int a=0;
+
+				int a=0;
 				}
 			}
 
-			System.out.println("after");
+			System.out.println("\nAfter adjusting bounds");
 			for(FlowEdge edge : graph.edges()){
-				System.out.println(edge + "lower="+edge.getLowerBound());
+				System.out.println(edge + "  lower="+edge.getLowerBound());
 			}
 
 
@@ -244,10 +249,6 @@ public class FordFulkerson {
 		displayOutputMessages(graph, vertexName);
 	}
 
-	private void findSuppliesAndDemands(){
-
-	}
-	
 	//Breadth first search
 	public boolean hasAugmentingPath(FlowNetwork graph, int source, int sink){
 		edgeTo = new FlowEdge[graph.vertexCount()];
@@ -315,6 +316,7 @@ public class FordFulkerson {
 
 
 	public static void main(String[] args){
+		// // Ford fulkerson graph, not a circulation graph
 		// FlowNetwork network = new FlowNetwork(6);
 		// network.addEdge(new FlowEdge(4, 0, 16));
 		// network.addEdge(new FlowEdge(4, 1, 13));
