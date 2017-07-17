@@ -130,8 +130,11 @@ public class FordFulkerson {
 	private double maxFlow = 0;
 	private int sumOfDemands = 0;
 	private int sumOfSupplies = 0;
+	private int lowerBoundsAdjustedsumOfDemands=0;
+	private int lowerBoundsAdjustedsumOfSupplies=0;
 	private boolean doDemandsMatchSupplies=true;
 	private boolean hasCirculation = true;
+	private boolean hasLowerBounds = false;
 
 	private boolean[] marked;
 	private FlowEdge[] edgeTo;
@@ -143,40 +146,29 @@ public class FordFulkerson {
 			if(vertexDemand[vertex]>0){
 				demandVertices.add(vertex);
 				sumOfDemands += vertexDemand[vertex];
-				// System.out.println("Demand="+vertexDemand[vertex]);
 			}
 			else if(vertexDemand[vertex]<0){
 				supplyVertices.add(vertex);
 				sumOfSupplies += -vertexDemand[vertex];		//negative
-				// System.out.println("Supply="+ -vertexDemand[vertex]);
 			}
 			//If demand=0 nothing needs to change, vertex is not connected to source or sink
 		}
-
+		
 		if(sumOfSupplies != sumOfDemands){
 			doDemandsMatchSupplies=false;
 		}
 
 		if(doDemandsMatchSupplies){		//Only continue if supplies/demands are valid
-			System.out.println("Before adjusting bounds");
-			for(FlowEdge edge : graph.edges()){
-				System.out.println(edge + "  lower="+edge.getLowerBound());
-			}
-
 			//Process edges and adjust for lower bounds
 			for(FlowEdge edge : graph.edges()){
 				if(edge.getLowerBound() != 0){		//Edges with NO lower bounds have lower bound of 0
-				System.out.println(edge);
+					hasLowerBounds=true;
 					//Subtract lower bounds from capacity & update bounds
 					double oldLowerBound = edge.getLowerBound();
 					edge.setCapacity(edge.getUpperBound() - oldLowerBound);		//lower bound edges initally have no capacity
 					edge.setUpperBound(edge.getCapacity());
 					edge.setLowerBound(0);
 
-				int from = edge.from();
-				int to = edge.to();
-				int fromDemand = vertexDemand[from];
-				int toDemand = vertexDemand[to];
 					//Adjust supplies/demands for both ends of the edge. Subtract oldLowerBound if vertex is a demand vertex (>0) & add if it's a supply vertex (<0)
 					if(vertexDemand[edge.from()]>0){
 						vertexDemand[edge.from()] -= oldLowerBound;
@@ -189,61 +181,74 @@ public class FordFulkerson {
 					}else{
 						vertexDemand[edge.to()] += oldLowerBound;
 					}
-
-				int a=0;
 				}
 			}
 
-			System.out.println("\nAfter adjusting bounds");
-			for(FlowEdge edge : graph.edges()){
-				System.out.println(edge + "  lower="+edge.getLowerBound());
+			//Recalculate Sum of supplies/demands with adjusted bounds
+			if(hasLowerBounds){
+				lowerBoundsAdjustedsumOfDemands=0;
+				lowerBoundsAdjustedsumOfSupplies=0;
+				for(int vertex=0; vertex<graph.vertexCount(); vertex++){
+					if(vertexDemand[vertex]>0){
+						lowerBoundsAdjustedsumOfDemands += vertexDemand[vertex];
+					}
+					else if(vertexDemand[vertex]<0){
+						lowerBoundsAdjustedsumOfSupplies += -vertexDemand[vertex];		//negative
+					}
+					//If demand=0 nothing needs to change, vertex is not connected to source or sink
+				}
+				if(lowerBoundsAdjustedsumOfSupplies != lowerBoundsAdjustedsumOfDemands){
+					doDemandsMatchSupplies=false;
+				}
 			}
 
+			if(doDemandsMatchSupplies){
+				//Add S & T, connect to supply/demand vertices
+				int source = graph.vertexCount();
+				int sink = source + 1;
 
-			int source = graph.vertexCount();
-			int sink = source + 1;
+				vertexName.add("S");
+				vertexName.add("T");
 
-			vertexName.add("S");
-			vertexName.add("T");
+				graph.addVertexPlaceholder();
+				graph.addVertexPlaceholder();
 
-			graph.addVertexPlaceholder();
-			graph.addVertexPlaceholder();
-
-			//Connect demand vertices to sink & source vertex to all supply vertices
-			for(int vertex : demandVertices){
-				graph.addEdge(new FlowEdge(vertex, sink, vertexDemand[vertex]));
-			}
-			for(int vertex : supplyVertices){
-				graph.addEdge(new FlowEdge(source, vertex, -vertexDemand[vertex]));		//negative of the demand value to get a positive capacity 
-			}
-
-
-			//Begin Ford Fulkerson part
-			maxFlow = 0;
-
-			while(hasAugmentingPath(graph, source, sink)){ 
-				double bottneckFlow = Double.POSITIVE_INFINITY;
-				
-				//Loop backwards over path & find the bottleneck flow
-				ArrayList<Integer> augmentingPathBackwards = new ArrayList<Integer>();		//save vertices on the path while looping backwards
-				for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
-					augmentingPathBackwards.add(v);
-					bottneckFlow = Math.min(bottneckFlow, edgeTo[v].residualCapacityTo(v));
+				//Connect demand vertices to sink & source vertex to all supply vertices
+				for(int vertex : demandVertices){
+					graph.addEdge(new FlowEdge(vertex, sink, vertexDemand[vertex]));
 				}
-				//Update residual Capacities
-				for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
-					edgeTo[v].addResidualFlowTo(v, bottneckFlow);
+				for(int vertex : supplyVertices){
+					graph.addEdge(new FlowEdge(source, vertex, -vertexDemand[vertex]));		//negative of the demand value to get a positive capacity 
 				}
 
-				System.out.print("Bottleneck Flow="+bottneckFlow);
-				System.out.print("\tAugmenting Path: ");
-				System.out.print(vertexName.get(source));
-				for(int i=augmentingPathBackwards.size()-1; i>=0; i--){
-					System.out.print("-->"+vertexName.get(augmentingPathBackwards.get(i)));
+
+				//Begin Ford Fulkerson part
+				maxFlow = 0;
+
+				while(hasAugmentingPath(graph, source, sink)){ 
+					double bottneckFlow = Double.POSITIVE_INFINITY;
+					
+					//Loop backwards over path & find the bottleneck flow
+					ArrayList<Integer> augmentingPathBackwards = new ArrayList<Integer>();		//save vertices on the path while looping backwards
+					for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
+						augmentingPathBackwards.add(v);
+						bottneckFlow = Math.min(bottneckFlow, edgeTo[v].residualCapacityTo(v));
+					}
+					//Update residual Capacities
+					for(int v = sink; v!=source; v=edgeTo[v].otherVertex(v)){
+						edgeTo[v].addResidualFlowTo(v, bottneckFlow);
+					}
+
+					System.out.print("Bottleneck Flow="+bottneckFlow);
+					System.out.print("\tAugmenting Path: ");
+					System.out.print(vertexName.get(source));
+					for(int i=augmentingPathBackwards.size()-1; i>=0; i--){
+						System.out.print("-->"+vertexName.get(augmentingPathBackwards.get(i)));
+					}
+					System.out.println();
+					
+					maxFlow += bottneckFlow;
 				}
-				System.out.println();
-				
-				maxFlow += bottneckFlow;
 			}
 		}
 		displayOutputMessages(graph, vertexName);
@@ -288,12 +293,20 @@ public class FordFulkerson {
 		if(!doDemandsMatchSupplies){
 			return false;
 		}
+		else if(hasLowerBounds){
+			if(maxFlow!=lowerBoundsAdjustedsumOfSupplies || maxFlow!=lowerBoundsAdjustedsumOfDemands){
+				return false;
+			}
+		}
+		else if(maxFlow!=sumOfSupplies || maxFlow!=sumOfDemands){
+			return false;
+		}
 		return true;
 	}
 
 	private void displayOutputMessages(FlowNetwork graph, ArrayList<String> vertexName){
 		if(hasCirculation()){
-			System.out.println("Graph has Circulation \nMaxflow value = "+maxFlow());
+			System.out.println("Graph has Circulation \nMaxflow value = "+maxFlow);
 			System.out.println("\nMincut vertices: ");
 			for(int v=0; v<graph.vertexCount(); ++v){
 				if(marked[v]){
@@ -306,6 +319,9 @@ public class FordFulkerson {
 				System.out.println("Demands & supplies do not match");
 				System.out.println("Sum of demands = "+sumOfDemands());
 				System.out.println("Sum of supplies = "+sumOfSupplies());
+			}
+			else{
+				System.out.println("Maxflow="+maxFlow +"  should match sum of demands & supplies \nOnly the source node \"S\" should be in the mincut");
 			}
 		}
 	}
