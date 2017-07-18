@@ -79,12 +79,12 @@ class FlowEdge {
 }
 
 
-class FlowNetwork {
+class FlowNetworkGraph {
 	private int vertexCount;
 	private int edgeCount;
 	private ArrayList<ArrayList<FlowEdge>> graph;
 	
-	public FlowNetwork(int vertexCount){
+	public FlowNetworkGraph(int vertexCount){
 		this.vertexCount = vertexCount;
 		graph = new ArrayList<ArrayList<FlowEdge>>(vertexCount);
 		for(int i=0; i<vertexCount; ++i){
@@ -126,7 +126,7 @@ class FlowNetwork {
 }
 
 
-public class FordFulkerson {
+public class CirculationWithDemands {
 	private double maxFlow = 0;
 	private int sumOfDemands = 0;
 	private int sumOfSupplies = 0;
@@ -139,7 +139,7 @@ public class FordFulkerson {
 	private boolean[] marked;
 	private FlowEdge[] edgeTo;
 
-	public FordFulkerson(FlowNetwork graph, ArrayList<String> vertexName, int[] vertexDemand){
+	public CirculationWithDemands(FlowNetworkGraph graph, ArrayList<String> vertexName, int[] vertexDemand){
 		ArrayList<Integer> demandVertices = new ArrayList<Integer>();
 		ArrayList<Integer> supplyVertices = new ArrayList<Integer>();
 		for(int vertex=0; vertex<graph.vertexCount(); vertex++){
@@ -255,7 +255,7 @@ public class FordFulkerson {
 	}
 
 	//Breadth first search
-	public boolean hasAugmentingPath(FlowNetwork graph, int source, int sink){
+	public boolean hasAugmentingPath(FlowNetworkGraph graph, int source, int sink){
 		edgeTo = new FlowEdge[graph.vertexCount()];
 		marked = new boolean[graph.vertexCount()];
 		
@@ -304,7 +304,7 @@ public class FordFulkerson {
 		return true;
 	}
 
-	private void displayOutputMessages(FlowNetwork graph, ArrayList<String> vertexName){
+	private void displayOutputMessages(FlowNetworkGraph graph, ArrayList<String> vertexName){
 		if(hasCirculation()){
 			System.out.println("Graph has Circulation \nMaxflow value = "+maxFlow);
 			System.out.println("\nMincut vertices: ");
@@ -332,66 +332,37 @@ public class FordFulkerson {
 
 
 	public static void main(String[] args){
-		// // Ford fulkerson graph, not a circulation graph
-		// FlowNetwork network = new FlowNetwork(6);
-		// network.addEdge(new FlowEdge(4, 0, 16));
-		// network.addEdge(new FlowEdge(4, 1, 13));
-		// network.addEdge(new FlowEdge(0, 2, 12));
-		// network.addEdge(new FlowEdge(1, 0, 4));
-		// network.addEdge(new FlowEdge(1, 3, 14));
-		// network.addEdge(new FlowEdge(2, 5, 20));
-		// network.addEdge(new FlowEdge(2, 1, 9));
-		// network.addEdge(new FlowEdge(3, 2, 7));
-		// network.addEdge(new FlowEdge(3, 5, 4));
-		// ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("v1", "v2", "v3", "v4"));
-		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, 4, 5);
+		// FlowNetworkGraph graph1 = new FlowNetworkGraph(4);
+		// graph1.addEdge(new FlowEdge(0, 2, 3));
+		// graph1.addEdge(new FlowEdge(0, 3, 1));
+		// graph1.addEdge(new FlowEdge(1, 0, 2));
+		// graph1.addEdge(new FlowEdge(1, 3, 3));
+		// graph1.addEdge(new FlowEdge(3, 2, 2));
+		// ArrayList<String> vertexNameGraph1 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
+		// int[] vertexDemandGraph1 = {-3, -3, 2, 4};
+		// CirculationWithDemands circulationFinderGraph1 = new CirculationWithDemands(graph1, vertexNameGraph1, vertexDemandGraph1);
 
+		// FlowNetworkGraph graph4 = new FlowNetworkGraph(6);
+		// graph4.addEdge(new FlowEdge(0, 3, 6));	//a d
+		// graph4.addEdge(new FlowEdge(0, 4, 7));	//a e
+		// graph4.addEdge(new FlowEdge(1, 3, 7));	//b d
+		// graph4.addEdge(new FlowEdge(1, 5, 9));	//b f
+		// graph4.addEdge(new FlowEdge(2, 0, 10));//c a
+		// graph4.addEdge(new FlowEdge(2, 3, 3));	//c d
+		// graph4.addEdge(new FlowEdge(4, 1, 4));	//e b
+		// graph4.addEdge(new FlowEdge(4, 5, 4));	//e f
+		// ArrayList<String> vertexNameGraph4 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D", "E", "F"));
+		// int[] vertexDemandGraph4 = {-8, -6, -7, 10, 0, 11};
+		// CirculationWithDemands circulationFinderGraph2 = new CirculationWithDemands(graph4, vertexNameGraph4, vertexDemandGraph4);
 
-		//Simple Circulation graph
-		// FlowNetwork network = new FlowNetwork(4);
-		// network.addEdge(new FlowEdge(0, 2, 3));
-		// network.addEdge(new FlowEdge(0, 3, 1));
-		// network.addEdge(new FlowEdge(1, 0, 2));
-		// network.addEdge(new FlowEdge(1, 3, 3));
-		// network.addEdge(new FlowEdge(3, 2, 2));
-		// ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
-		// int[] vertexDemand = {-3, -3, 2, 4};
-		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, vertexDemand);
-
-		//Complex circulation graph
-		// FlowNetwork network = new FlowNetwork(6);
-		// network.addEdge(new FlowEdge(0, 3, 6));	//a d
-		// network.addEdge(new FlowEdge(0, 4, 7));	//a e
-		// network.addEdge(new FlowEdge(1, 3, 7));	//b d
-		// network.addEdge(new FlowEdge(1, 5, 9));	//b f
-		// network.addEdge(new FlowEdge(2, 0, 10));//c a
-		// network.addEdge(new FlowEdge(2, 3, 3));	//c d
-		// network.addEdge(new FlowEdge(4, 1, 4));	//e b
-		// network.addEdge(new FlowEdge(4, 5, 4));	//e f
-		// ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("a", "b", "c", "d", "e", "f"));
-		// int[] vertexDemand = {-8, -6, -7, 10, 0, 11};
-		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, vertexDemand);
-
-		//Graph 5 with no lower bounds
-		// FlowNetwork network = new FlowNetwork(4);
-		// network.addEdge(new FlowEdge(0, 2, 4));
-		// network.addEdge(new FlowEdge(0, 1, 5));
-		// network.addEdge(new FlowEdge(1, 2, 5));
-		// network.addEdge(new FlowEdge(1, 3, 4));
-		// network.addEdge(new FlowEdge(2, 3, 3));
-		// ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
-		// int[] vertexDemand = {-3, -4, 2, 5};
-		// FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, vertexDemand);
-
-		//Graph 5
-		FlowNetwork network = new FlowNetwork(4);
-		network.addEdge(new FlowEdge(0, 2, 4));
-		network.addEdge(new FlowEdge(0, 1, 5));
-		network.addEdge(new FlowEdge(1, 2, 1, 5));	//has lower & upper bound
-		network.addEdge(new FlowEdge(1, 3, 4));
-		network.addEdge(new FlowEdge(2, 3, 3));
-		ArrayList<String> vertexName = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
-		int[] vertexDemand = {-3, -4, 2, 5};
-		FordFulkerson fordFulkerson = new FordFulkerson(network, vertexName, vertexDemand);
+		FlowNetworkGraph graph5 = new FlowNetworkGraph(4);
+		graph5.addEdge(new FlowEdge(0, 2, 4));
+		graph5.addEdge(new FlowEdge(0, 1, 5));
+		graph5.addEdge(new FlowEdge(1, 2, 1, 5));	//has lower & upper bound
+		graph5.addEdge(new FlowEdge(1, 3, 4));
+		graph5.addEdge(new FlowEdge(2, 3, 3));
+		ArrayList<String> vertexNameGraph5 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
+		int[] vertexDemandGraph5 = {-3, -4, 2, 5};
+		CirculationWithDemands circulationFinderGraph5 = new CirculationWithDemands(graph5, vertexNameGraph5, vertexDemandGraph5);
 	}
 }
