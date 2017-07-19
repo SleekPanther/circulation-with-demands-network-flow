@@ -133,7 +133,6 @@ public class CirculationWithDemands {
 	private int lowerBoundsAdjustedsumOfDemands=0;
 	private int lowerBoundsAdjustedsumOfSupplies=0;
 	private boolean doDemandsMatchSupplies=true;
-	private boolean hasCirculation = true;
 	private boolean hasLowerBounds = false;
 
 	private boolean[] marked;
@@ -332,29 +331,54 @@ public class CirculationWithDemands {
 
 
 	public static void main(String[] args){
-		// FlowNetworkGraph graph1 = new FlowNetworkGraph(4);
-		// graph1.addEdge(new FlowEdge(0, 2, 3));
-		// graph1.addEdge(new FlowEdge(0, 3, 1));
-		// graph1.addEdge(new FlowEdge(1, 0, 2));
-		// graph1.addEdge(new FlowEdge(1, 3, 3));
-		// graph1.addEdge(new FlowEdge(3, 2, 2));
-		// ArrayList<String> vertexNameGraph1 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
-		// int[] vertexDemandGraph1 = {-3, -3, 2, 4};
-		// CirculationWithDemands circulationFinderGraph1 = new CirculationWithDemands(graph1, vertexNameGraph1, vertexDemandGraph1);
+		System.out.println("Graph 1");
+		FlowNetworkGraph graph1 = new FlowNetworkGraph(4);
+		graph1.addEdge(new FlowEdge(0, 2, 3));
+		graph1.addEdge(new FlowEdge(0, 3, 1));
+		graph1.addEdge(new FlowEdge(1, 0, 2));
+		graph1.addEdge(new FlowEdge(1, 3, 3));
+		graph1.addEdge(new FlowEdge(3, 2, 2));
+		ArrayList<String> vertexNameGraph1 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
+		int[] vertexDemandGraph1 = {-3, -3, 2, 4};
+		CirculationWithDemands circulationFinderGraph1 = new CirculationWithDemands(graph1, vertexNameGraph1, vertexDemandGraph1);
 
-		// FlowNetworkGraph graph4 = new FlowNetworkGraph(6);
-		// graph4.addEdge(new FlowEdge(0, 3, 6));	//a d
-		// graph4.addEdge(new FlowEdge(0, 4, 7));	//a e
-		// graph4.addEdge(new FlowEdge(1, 3, 7));	//b d
-		// graph4.addEdge(new FlowEdge(1, 5, 9));	//b f
-		// graph4.addEdge(new FlowEdge(2, 0, 10));//c a
-		// graph4.addEdge(new FlowEdge(2, 3, 3));	//c d
-		// graph4.addEdge(new FlowEdge(4, 1, 4));	//e b
-		// graph4.addEdge(new FlowEdge(4, 5, 4));	//e f
-		// ArrayList<String> vertexNameGraph4 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D", "E", "F"));
-		// int[] vertexDemandGraph4 = {-8, -6, -7, 10, 0, 11};
-		// CirculationWithDemands circulationFinderGraph2 = new CirculationWithDemands(graph4, vertexNameGraph4, vertexDemandGraph4);
+		System.out.println("\n\n\nGraph 2");
+		FlowNetworkGraph graph2 = new FlowNetworkGraph(4);
+		graph2.addEdge(new FlowEdge(0, 2, 3));
+		graph2.addEdge(new FlowEdge(0, 3, 1));
+		graph2.addEdge(new FlowEdge(1, 0, 2));
+		graph2.addEdge(new FlowEdge(1, 3, 3));
+		graph2.addEdge(new FlowEdge(3, 2, 2));
+		ArrayList<String> vertexNameGraph2 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
+		int[] vertexDemandGraph2 = {-3, -4, 2, 4};
+		CirculationWithDemands circulationFinderGraph2 = new CirculationWithDemands(graph2, vertexNameGraph2, vertexDemandGraph2);
 
+		System.out.println("\n\nGraph 3");
+		FlowNetworkGraph graph3 = new FlowNetworkGraph(4);
+		graph3.addEdge(new FlowEdge(0, 2, 3));
+		graph3.addEdge(new FlowEdge(0, 3, 1));
+		graph3.addEdge(new FlowEdge(1, 0, 2));
+		graph3.addEdge(new FlowEdge(1, 3, 2));	//changed capacity from graph 1
+		graph3.addEdge(new FlowEdge(3, 2, 2));
+		ArrayList<String> vertexNameGraph3 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));
+		int[] vertexDemandGraph3 = {-3, -3, 2, 4};
+		CirculationWithDemands circulationFinderGraph3 = new CirculationWithDemands(graph3, vertexNameGraph3, vertexDemandGraph3);
+
+		System.out.println("\n\nGraph 4");
+		FlowNetworkGraph graph4 = new FlowNetworkGraph(6);
+		graph4.addEdge(new FlowEdge(0, 3, 6));	//a d
+		graph4.addEdge(new FlowEdge(0, 4, 7));	//a e
+		graph4.addEdge(new FlowEdge(1, 3, 7));	//b d
+		graph4.addEdge(new FlowEdge(1, 5, 9));	//b f
+		graph4.addEdge(new FlowEdge(2, 0, 10));//c a
+		graph4.addEdge(new FlowEdge(2, 3, 3));	//c d
+		graph4.addEdge(new FlowEdge(4, 1, 4));	//e b
+		graph4.addEdge(new FlowEdge(4, 5, 4));	//e f
+		ArrayList<String> vertexNameGraph4 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D", "E", "F"));
+		int[] vertexDemandGraph4 = {-8, -6, -7, 10, 0, 11};
+		CirculationWithDemands circulationFinderGraph4 = new CirculationWithDemands(graph4, vertexNameGraph4, vertexDemandGraph4);
+
+		System.out.println("\n\n\nGraph 5");
 		FlowNetworkGraph graph5 = new FlowNetworkGraph(4);
 		graph5.addEdge(new FlowEdge(0, 2, 4));
 		graph5.addEdge(new FlowEdge(0, 1, 5));
