@@ -84,12 +84,35 @@ All other edges have lower bound of 0, so essentially the same as before
 #### **Max Flow = 6 (has circulation)**
 
 ## Usage
+**The code will take an input graph and modify it by adding source and sink nodes, connecting edges to demands/supplies and adjusting for lowe bounds**
+
+- Create a new graph & **specify the number of vertices in the ORIGINAL graph (without S & T)**  
+    `FlowNetworkGraph graph1 = new FlowNetworkGraph(4);`
+- Add edges that exist in the graph  
+    - `FlowEdge` constructor is `(int fromVertex, int toVertex, double capacity)`
+    - `graph1.addEdge(new FlowEdge(0, 2, 3));`  
+    - `graph1.addEdge(new FlowEdge(0, 3, 1));`  
+    - *add more edges*
+- The code refers to vertices by `int` indexes, so create an `ArrayList` to convert to `String` names  
+   - `ArrayList<String> vertexNameGraph1 = new ArrayList<String>(Arrays.asList("A", "B", "C", "D"));`
+    - Here vertex `0` is **A**, `1` is **B**, etc.
+- Make an array to hold supply/demand values for vertices  
+   `int[] vertexDemandGraph1 = {-3, -3, 2, 4};`
+- Create a new `CirculationWithDemands` object which will modify the graph & run Ford-Fulkerson  
+   `CirculationWithDemands circulationFinderGraph1 = new CirculationWithDemands(graph1, vertexNameGraph1, vertexDemandGraph1);`
+- &nbsp;
 - Lower bounds
     - No need to put lower bounds of 0, it's assumed
-    - Only use the `FlowEdge` constructor with `3` arguments if it has a lower bound
+    - Only use the `FlowEdge` constructor with `4` arguments if it has a lower bound  
+    `graph5.addEdge(new FlowEdge(1, 2, 1, 5));`
+    - All other edges in `graph5` are simple & have default lower bound of `0`
 
 ## Code Details
-
+- Graph is kind a modified adjacency list but created via an edge list approach
+- Checks whether certain things would break conditions for circulation
+- `doDemandsMatchSupplies` is checked twice if the graph has lower bounds after adjusting capacities
+- Works for graphs without lower bounds and skips that part altogether
+- Uses breadth first search
 
 ## References
 - [Ford-Fulkerson - Codebytes](http://www.codebytes.in/2015/12/finding-maxflow-mincut-using-ford.html) adapted basic Ford-Fuolkerson code
