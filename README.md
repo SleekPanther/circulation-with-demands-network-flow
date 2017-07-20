@@ -26,7 +26,7 @@ Is there a circulation in these graphs?
 **Graph has circulation if maxFlow = sum of supplies  
 Mincut should just contain the source `S`**
 
-### Graph1
+### Graph 1
 <img src="images/graph1-initial.png" width="300">  
 
 **Add Source and Sink**  
@@ -38,7 +38,7 @@ Mincut should just contain the source `S`**
 
 <br>
 
-### Graph2 (no circulation)
+### Graph 2 (no circulation)
 <img src="images/graph2.png" width="300">  
 
 Vertex **B**'s supply is too high this time.  
@@ -77,6 +77,7 @@ All other edges have lower bound of 0, so essentially the same as before
     - Supply vertices have **negative** demand so **add the lower bound**
     - Demand vertices have **positive** demand so **subtract the lower bound**
 
+### Graph 5
 <img src="images/graph5-adjusted-bounds.png" width="300">  
 
 **Add source and sink & Ford-Fulkerson finds max flow**  
